@@ -1,0 +1,121 @@
+// ==========================================
+// VANGUARD ONBOARDING AUTOMATION & API ENGINE
+// ==========================================
+
+const EMAIL_TEMPLATES = {
+  welcome: {
+    subject: "Welcome to Vanguard, {Name}! Action Required",
+    body: "Hi {Name},\n\nWelcome to the Vanguard project! Your account profile has been successfully created.\n\nPlease upload your Background Verification (BGC) documents within the next 48 hours to avoid delays.\n\nBest regards,\nVanguard Onboarding Team"
+  },
+  reminder: {
+    subject: "Action Required: Missing BGC Documents for {Name}",
+    body: "Hi {Name},\n\nWe noticed that your Background Verification (BGC) documents are still pending. Please submit them immediately so we can proceed with your onboarding.\n\nThank you,\nVanguard Onboarding Team"
+  },
+  trainings: {
+    subject: "Mandatory Trainings Assigned for {Name}",
+    body: "Hi {Name},\n\nPlease complete the following 4 mandatory trainings by the end of your first week:\n\n1. Information Security (InfoSec)\n2. Code of Conduct\n3. POSH (Prevention of Sexual Harassment)\n4. Data Privacy\n\nYour progress will be tracked automatically.\n\nBest regards,\nVanguard Onboarding Team"
+  },
+  credentials: {
+    subject: "Onboarding Complete! Your Credentials & AI Buddy",
+    body: "Hi {Name},\n\nCongratulations, your onboarding is officially complete!\n\nPlease use the Vanguard Portal to access your AI Onboarding Buddy. You can ask it exactly which trainings you have completed, or any questions about IT access.\n\nWelcome aboard!\nTeam Vanguard"
+  }
+};
+
+function runAutomations() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if(!row[0] || !row[1]) continue; 
+
+    const name = row[0];             // Col A
+    const email = row[1];            // Col B
+    const profileCreated = row[2];   // Col C
+    const bgcStatus = row[3];        // Col D
+    const onboardingStatus = row[4]; // Col E
+    
+    let welcomeSent = row[5];        // Col F
+    let reminderSent = row[6];       // Col G
+    let trainingsSent = row[7];      // Col H
+    let credentialsSent = row[8];    // Col I
+    
+    // Timestamp from Column N (Index 13)
+    const profileTimestamp = row[13]; 
+    
+    // Calculate if it was created in the last 1 hour
+    let isWithinLastHour = false;
+    if (profileTimestamp) {
+      const createdDate = new Date(profileTimestamp);
+      const now = new Date();
+      // Get difference in hours
+      const diffInHours = (now - createdDate) / (1000 * 60 * 60);
+      
+      if (diffInHours >= 0 && diffInHours <= 1) {
+        isWithinLastHour = true;
+      }
+    }
+    
+    // TRIGGER 1: Welcome Email (Only if in last hour AND not sent yet)
+    // The welcomeSent !== "Yes" is the strict safeguard against duplicate emails!
+    if (profileCreated === "Yes" && welcomeSent !== "Yes") {
+      sendEmail(email, name, EMAIL_TEMPLATES.welcome);
+      sheet.getRange(i + 1, 6).setValue("Yes"); 
+    }
+    
+    // TRIGGER 2: BGC Reminder Email 
+    else if (bgcStatus === "Pending" && welcomeSent === "Yes" && reminderSent !== "Yes") {
+      sendEmail(email, name, EMAIL_TEMPLATES.reminder);
+      sheet.getRange(i + 1, 7).setValue("Yes"); 
+    }
+
+    // TRIGGER 3: Initial Trainings Mail 
+    else if (welcomeSent === "Yes" && trainingsSent !== "Yes") {
+      sendEmail(email, name, EMAIL_TEMPLATES.trainings);
+      sheet.getRange(i + 1, 8).setValue("Yes"); 
+    }
+    
+    // TRIGGER 4: Credentials Email 
+    else if (onboardingStatus === "Completed" && credentialsSent !== "Yes") {
+      sendEmail(email, name, EMAIL_TEMPLATES.credentials);
+      sheet.getRange(i + 1, 9).setValue("Yes"); 
+    }
+  }
+}
+
+function sendEmail(email, name, template) {
+  const subject = template.subject.replace(/{Name}/g, name);
+  const body = template.body.replace(/{Name}/g, name);
+  MailApp.sendEmail(email, subject, body);
+}
+
+// ==========================================
+// API CONNECTION FOR HTML CHATBOT
+// ==========================================
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+  const requestedEmail = e.parameter.email;
+  
+  if (!requestedEmail) return ContentService.createTextOutput(JSON.stringify({ error: "No email" })).setMimeType(ContentService.MimeType.JSON);
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const email = row[1]; 
+    if (email && email.toLowerCase() === requestedEmail.toLowerCase()) {
+      const employeeData = {
+        name: row[0],
+        bgcStatus: row[3],
+        onboardingStatus: row[4],
+        trainings: {
+          infoSec: row[9] || "Pending",
+          codeOfConduct: row[10] || "Pending",
+          posh: row[11] || "Pending",
+          dataPrivacy: row[12] || "Pending"
+        }
+      };
+      return ContentService.createTextOutput(JSON.stringify(employeeData)).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({ error: "Employee not found." })).setMimeType(ContentService.MimeType.JSON);
+}
