@@ -6,7 +6,7 @@ from email.message import EmailMessage
 # 1. CONFIGURATION (UPDATE THESE!)
 # ==========================================
 EXCEL_FILE = r"C:\Users\shragaja\OneDrive - Capgemini\Documents\Vanguard_Onboarding.xlsx"
-EMAIL_ADDRESS = "shraddhawarade85@gmail.com"  # Your sender email
+EMAIL_ADDRESS = ""  # Your sender email
 EMAIL_PASSWORD = "" # The App Password you generated
 SMTP_SERVER = "smtp.gmail.com" # Use smtp-mail.outlook.com if using Outlook
 SMTP_PORT = 587
