@@ -5,16 +5,16 @@ from email.message import EmailMessage
 # ==========================================
 # 1. CONFIGURATION (UPDATE THESE!)
 # ==========================================
-EXCEL_FILE = r"C:\Users\shragaja\OneDrive - Capgemini\Documents\Vanguard_Onboarding.xlsx"
-EMAIL_ADDRESS = ""  # Your sender email
+EXCEL_FILE = r"https://d.docs.live.net/c67814a7009360a1/Documents/Vanguard_Onboarding.xlsx"
+EMAIL_ADDRESS = "shraddhawarade85@gmail.com"  # Your sender email
 EMAIL_PASSWORD = "" # The App Password you generated
 SMTP_SERVER = "smtp.gmail.com" # Use smtp-mail.outlook.com if using Outlook
 SMTP_PORT = 587
 
 EMAIL_TEMPLATES = {
     "welcome": {
-        "subject": "Welcome to Vanguard, {Name}! Action Required",
-        "body": "Hi {Name},\n\nWelcome to the Vanguard project! Your account profile has been successfully created.\n\nPlease upload your BGC documents.\n\nBest,\nTeam"
+        "subject": "Welcome to the Team, {Name}! Action Required",
+        "body": "Hi {Name},\n\nWelcome to the team! Your account profile has been successfully created.\n\nPlease upload your BGC documents.\n\nBest,\nTeam"
     },
     "trainings": {
         "subject": "Mandatory Trainings Assigned for {Name}",
@@ -67,7 +67,7 @@ def send_email(to_email, name, template_key, pending_list=None):
 # 3. AUTOMATION ENGINE
 # ==========================================
 def run_automations():
-    print("Starting Vanguard Onboarding Automation...")
+    print("Starting Onboarding Automation...")
     wb = openpyxl.load_workbook(EXCEL_FILE)
     sheet = wb.active
     
