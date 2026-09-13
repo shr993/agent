@@ -1,4 +1,4 @@
-# 🚀 OnboardAI - Enterprise Agentic Onboarding Platform
+ OnboardAI - Enterprise Agentic Onboarding Platform
 
 An autonomous, agentic employee onboarding and manager oversight platform built with **Python (Flask)**, **PostgreSQL**, and a modern, decluttered **Single-Page Application (SPA)** with in-browser screen recording capabilities.
 
